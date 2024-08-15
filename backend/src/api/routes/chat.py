@@ -22,6 +22,11 @@ async def chat(
     except httpx.HTTPStatusError as e:
         embedd_input = None
 
+
+    #TODO: vectordb
+
+    
+
     return {"Content": embedd_input}
 
 
