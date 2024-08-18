@@ -1,7 +1,7 @@
 services:
   nlp_engine:
     container_name: nlp_engine
-    image: gclub/llama.cpp:server--b1-2321a5e
+    image: gclub/llama.cpp:server--b1-27d4b7c
     restart: always
     deploy:
       resources:
@@ -15,3 +15,18 @@ services:
       - 8081:8080
     command: ["-m","models/all-MiniLM-L6-v2-Q4_K_M-v2.gguf","--embeddings","--pooling","mean","-c","512"]
 
+  inference_engine:
+    container_name: inference_engine
+    image: gclub/llama.cpp:server--b1-27d4b7c
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          cpus: "8"
+    volumes:
+      - "${DOCKER_VOLUME_DIRECTORY:-.}/volumes/models:/models"
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    command: ["-m","models/ft-smollm-135M-instruct-on-hf-ultrafeedback-f16.gguf","-c","512"]

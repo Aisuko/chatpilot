@@ -3,10 +3,13 @@ import random
 import string
 import datetime
 import tiktoken
+from openai import OpenAI
 
 RMIT="RMIT"
 
 encoding = tiktoken.get_encoding("r50k_base") 
+
+client = OpenAI(base_url="http://localhost:8080/v1", api_key="not-needed", organization='SelectedModel')
 
 def writehistory(filename,text):
     with open(filename, 'a', encoding='utf-8') as f:
@@ -119,45 +122,21 @@ if user_prompt := st.chat_input("Your message here. Shift+Enter to add a new lin
             conv_messages = []
             conv_messages.append(st.session_state.messages[-1])
             full_response = ""
-            # completion = client.chat.completions.create(
-            #     model="local-model", # this field is currently unused
-            #     messages=conv_messages,  #st.session_state.messages if you want to keep previous messages,
-            #     temperature=st.session_state.temperature,
-            #     frequency_penalty  = st.session_state.repeat,
-            #     stop=['<|im_end|>','</s>'],
-            #     max_tokens=st.session_state.maxlength,
-            #     stream=True,
-            # )
-            completion={
-                "choices": [
-                    {
-                    "finish_reason": "stop",
-                    "index": 0,
-                    "message": {
-                        "content": "Sorry, currently I'm learning knwoledge from the internal super high quality data. I will be back soon.",
-                        "role": "assistant"
-                    },
-                    "logprobs": None
-                    }
-                ],
-                "created": 1677664795,
-                "id": "chatcmpl-7QyqpwdfhqwajicIEznoc6Q47XAyW",
-                "model": "gpt-4o-mini",
-                "object": "chat.completion",
-                "usage": {
-                    "completion_tokens": 17,
-                    "prompt_tokens": 57,
-                    "total_tokens": 74
-                }
-            }
 
+            completion = client.chat.completions.create(
+                model="local-model",
+                messages=conv_messages,  #st.session_state.messages if you want to keep previous messages,
+                temperature=st.session_state.temperature,
+                frequency_penalty  = st.session_state.repeat,
+                stop=['<|im_end|>','</s>'],
+                max_tokens=st.session_state.maxlength,
+                stream=True,
+            )
+            for chunk in completion:
+                if chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+                    message_placeholder.markdown(full_response + "🌟")
 
-            full_response += completion.get('choices')[0].get('message').get('content')
-            message_placeholder.markdown(full_response + "🌟")
-            # for chunk in completion:
-            #     if chunk.choices[0].message.content:
-            #         full_response += chunk.choices[0].message.content
-            #         message_placeholder.markdown(full_response + "🌟")
             toregister = full_response + f"""
 ```
 
